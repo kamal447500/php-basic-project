@@ -1,26 +1,41 @@
+<?php  include('server.php'); ?>
 <?php 
-  session_start(); 
 
-  if (!isset($_SESSION['username'])) {
-  	$_SESSION['msg'] = "You must log in first";
-  	header('location: login.php');
-  }
-  if (isset($_GET['logout'])) {
-  	session_destroy();
-  	unset($_SESSION['username']);
-  	header("location: login.php");
-  }
+if(isset($_session['username'])){
+	$_SESSION['msg'] = "you must log in first to view the page";
+	header("location : login.php");
+}
+
+if(isset($_GET['logout'])){
+	session_destroy();
+	unset($_SESSION['username']);
+	header("location : login.php");
+}
 ?>
+<?php 
+	if (isset($_GET['edit'])) {
+		$id = $_GET['edit'];
+		$update = true;
+		$record = mysqli_query($db, "SELECT * FROM employees WHERE id=$id");
+
+		if (count($record) == 1 ) {
+			$n = mysqli_fetch_array($record);
+			$name = $n['name'];
+			$salary = $n['salary'];
+		}
+	}
+?>
+
 <!DOCTYPE html>
 <html>
 <head>
-	<title>Home</title>
+	<title>Homepage</title>
 	<link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>
 
 <div class="header">
-	<h2>Home Page</h2>
+	<h2>Home</h2>
 </div>
 <div class="content">
   	<!-- notification message -->
@@ -36,11 +51,47 @@
   	<?php endif ?>
 
     <!-- logged in user information -->
+
     <?php  if (isset($_SESSION['username'])) : ?>
     	<p>Welcome <strong><?php echo $_SESSION['username']; ?></strong></p>
     	<p> <a href="index.php?logout='1'" style="color: red;">logout</a> </p>
+    	<p> Not yet a Employee? <a href="employee.php">Add Employee</a> </p>
     <?php endif ?>
-</div>
-		
+</div>	
+	
+
+<?php $results = mysqli_query($db, "SELECT * FROM employees"); ?>
+
+<table>
+	<thead>
+		<tr>
+			<p>Employee List</p>
+			<th>Name</th>
+			<th>Salary</th>
+			<th colspan="2">Action</th>
+		</tr>
+	</thead>
+	
+	<?php while ($row = mysqli_fetch_array($results)) { ?>
+		<tr>
+			<td><?php echo $row['name']; ?></td>
+			<td><?php echo $row['salary']; ?></td>
+			<td>
+				<a href="employee.php?edit=<?php echo $row['id']; ?>" class="edit_btn" >Edit</a>
+				<div class="input-group">
+					<?php if ($update == true): ?>
+						<button class="btn" type="submit" name="update" style="background: #556B2F;" >update</button>
+					<?php else: ?>
+						<button class="btn" type="submit" name="save" >Save</button>
+					<?php endif ?>
+			
+				</div>
+			</td>
+			<td>
+				<a href="employee.php?del=<?php echo $row['id']; ?>" class="del_btn">Delete</a>
+			</td>
+		</tr>
+	<?php } ?>
+</table>
 </body>
 </html>
